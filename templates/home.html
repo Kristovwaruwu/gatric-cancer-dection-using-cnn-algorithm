@@ -1,0 +1,142 @@
+{% include "header.html" %}
+
+<div class="detection">
+  <div class="card-detection">
+    <div class="header-title">
+      <img class="img-logo" src="/static/assets/logo_usu.png" alt="" />
+      <div>
+        <label class="profile">171401131 - EUKARDI YANTO KRISTOV WARUWU</label>
+        <label class="levels">PROGRAM SKRIPSI SARJANA</label>
+        <h3 class="title">
+          KLASIFIKASI KANKER LAMBUNG MENGGUNAKAN ALGORITMA CONVOLUTIONAL NEURAL
+          NETWORK (CNN)
+        </h3>
+      </div>
+    </div>
+    <div class="upload-image">
+      <form id="form" enctype="multipart/form-data">
+        <label>Masukan Data (.jpg/png)</label>
+        <div class="mb-3">
+          <input
+            class="form-control"
+            type="file"
+            id="formFile"
+            name="file"
+            accept="image/jpeg, image/png"
+          />
+        </div>
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-success" type="button">
+            Process
+          </button>
+        </div>
+      </form>
+
+      <div id="result" class="imageresult">
+        <div class="container">
+              <label class="resultText">HASIL KLASIFIKASI GAMBAR</label>
+              <div class="upload-image">
+                <a class="test-popup-link">
+                  <img id="gambarHasil" alt="hasil prediksi" />
+                </a>
+              </div>
+        </div>
+        
+        <div class="header-title-res">
+          <label class="sub-title" id="classes">Hasil prediksi </label>
+        </div>
+      </div>
+      
+    </div>
+    </div>
+  </div>
+
+  <!-- <script src="{{ url_for('static', filename='jquery.min.js') }}"></script> -->
+  <script type="text/javascript">
+    $(function () {
+      var gambarHasil = false;
+      $('#result').hide();
+      $('#resultTrain').hide();
+
+      $('.test-popup-link').magnificPopup({
+        type: 'image',
+        mainClass: 'mfp-with-zoom', // this class is for CSS animation below
+
+        zoom: {
+          enabled: true, // By default it's false, so don't forget to enable it
+
+          duration: 300, // duration of the effect, in milliseconds
+          easing: 'ease-in-out', // CSS transition easing function
+
+          // The "opener" function should return the element from which popup will be zoomed in
+          // and to which popup will be scaled down
+          // By defailt it looks for an image tag:
+          opener: function (openerElement) {
+            // openerElement is the element on which popup was initialized, in this case its <a> tag
+            // you don't need to add "opener" option if this code matches your needs, it's defailt one.
+            return openerElement.is('img')
+              ? openerElement
+              : openerElement.find('img');
+          },
+        },
+      });
+
+      $('#form').submit(function (e) {
+        e.preventDefault();
+        var form_data = new FormData($('form')[0]);
+
+        var file = $('input[name=file]').val();
+        var filename = file.split('.')[1];
+
+        $('#img').show();
+        if (file == '') {
+          alert('Data tidak boleh kosong');
+          $('#img').hide();
+          return false;
+        }
+
+        $.ajax({
+          type: 'POST',
+          url: '/process',
+          contentType: false,
+          processData: false,
+          data: form_data,
+          success: function (res) {
+            $('#result').show();
+            $('#resultTrain').show();
+            $('#img').hide();
+            gambarHasil = true;
+
+            if (gambarHasil) {
+              $('.test-popup-link').attr(
+                'href',
+                'static/gambarHasil.' + filename
+              );
+              $('#gambarHasil').attr('src', 'static/gambarHasil.' + filename);
+            }
+            let result = `Hasil Prediksi Jenis Kanker: ${res.data}`;
+            // let hasil;
+            // hasil = $.map(res.data, function(val, i) {
+            //   return ('Hasil prediksi : ' + val[0] + ' | Nilai akurasi : ' + val[1])
+            // });
+            // let tableHTML = "";
+            // if(res.data.length < 1 || res.data === undefined) {
+            //   tableHTML += `<tr><td colspan="2" style="text-align:center">Tidak ada kerusakan</td></tr>`
+            // } else {
+            //   $.each(res.data, function(index, val) {
+            //     tableHTML += `<tr><td>${val[0]}</td><td>${val[1]}</td></tr>`;
+            //   })
+            // }
+            $('#classes').empty();
+            $('#classes').append(result);
+          },
+          error: function (err) {
+            $('#img').hide();
+            console.log(err);
+          },
+        });
+      });
+    });
+  </script>
+  {% include "footer.html" %}
+</div>
